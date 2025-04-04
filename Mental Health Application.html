@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+
+</head>
+<body>
+    <h1>Welcome to your Mental Health Journal</h1>
+    <p>Track your moods, document your thoughts, and discover patterns to improve your mental wellbeing.</p>
+    
+    <div class="quote-container">
+        <p class="quote-text" id="quote-text">Loading an inspirational quote for you...</p>
+        <p class="quote-author" id="quote-author"></p>
+    </div>
+    
+    <a href="#journal" class="cta-button">Start Journaling</a>
+    <link rel="stylesheet" href="Design.css">
+    <!-- Journal Section -->
+    <section class="journal-section" id="journal">
+        <h2>Create your Journal Entry</h2>
+        <p>Take a moment to reflect on your day and document your thoughts</p>
+        
+        <div class="form-container">
+            <form id="journal-form">
+                <div class="form-group">
+                    <label for="date">Date</label>
+                    <input type="date" id="date" name="date" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>How are you feeling today?</label>
+                    <div class="mood-options">
+                        <div class="mood-option" data-mood="Great">
+                            <div style="font-size: 1.5rem;">😃</div>
+                            <span>Great</span>
+                        </div>
+                        <div class="mood-option" data-mood="Good">
+                            <div style="font-size: 1.5rem;">🙂</div>
+                            <span>Good</span>
+                        </div>
+                        <div class="mood-option" data-mood="Neutral">
+                            <div style="font-size: 1.5rem;">😐</div>
+                            <span>Neutral</span>
+                        </div>
+                        <div class="mood-option" data-mood="Low">
+                            <div style="font-size: 1.5rem;">😔</div>
+                            <span>Low</span>
+                        </div>
+                        <div class="mood-option" data-mood="Bad">
+                            <div style="font-size: 1.5rem;">😞</div>
+                            <span>Bad</span>
+                        </div>
+                    </div>
+                    <input type="hidden" id="mood" name="mood">
+                </div>
+                
+                <div class="form-group">
+                    <label for="gratitude">Three things I'm grateful for today:</label>
+                    <textarea id="gratitude" name="gratitude" placeholder="1. &#10;2. &#10;3. "></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="journal-entry">Journal Entry</label>
+                    <textarea id="journal-entry" name="journal-entry" placeholder="Write about your day, your thoughts, feelings, challenges and victories......"></textarea>
+                </div>
+                
+                <button type="submit" class="button">Save Entry</button>
+            </form>
+        </div>
+    </section>
+    
+    <!-- Past Entries Section -->
+    <section class="entries-container">
+        <h2>Your Journal Entries</h2>
+        <ul class="entry-list" id="entries-list">
+            <!-- Entries will be added here dynamically -->
+        </ul>
+    </section>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set today's date as default
+            document.getElementById('date').valueAsDate = new Date();
+            
+            // Mood selection logic
+            const moodOptions = document.querySelectorAll('.mood-option');
+            const moodInput = document.getElementById('mood');
+            
+            moodOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // Remove selected class from all options
+                    moodOptions.forEach(opt => opt.classList.remove('selected'));
+                    // Add selected class to clicked option
+                    this.classList.add('selected');
+                    // Update hidden input
+                    moodInput.value = this.getAttribute('data-mood');
+                });
+            });
+            
+            // Form submission
+            const journalForm = document.getElementById('journal-form');
+            journalForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Get form values
+                const date = document.getElementById('date').value;
+                const mood = document.getElementById('mood').value;
+                const gratitude = document.getElementById('gratitude').value;
+                const journalEntry = document.getElementById('journal-entry').value;
+                
+                // Validate form
+                if (!date || !mood) {
+                    alert('Please fill in the date and select a mood.');
+                    return;
+                }
+                
+                // Create entry object
+                const entry = {
+                    date: date,
+                    mood: mood,
+                    gratitude: gratitude,
+                    journalEntry: journalEntry
+                };
+                
+                // Save entry to local storage
+                saveEntry(entry);
+                
+                // Display success message
+                alert('Journal entry saved successfully!');
+                
+                // Clear form
+                journalForm.reset();
+                document.getElementById('date').valueAsDate = new Date();
+                moodOptions.forEach(opt => opt.classList.remove('selected'));
+                moodInput.value = '';
+                
+                // Refresh entries list
+                displayEntries();
+            });
+            
+            // Load and display quotes
+            loadQuote();
+            
+            // Display saved entries on page load
+            displayEntries();
+        });
+        
+        // Save entry to local storage
+        function saveEntry(entry) {
+            // Get existing entries or initialize empty array
+            let entries = JSON.parse(localStorage.getItem('journalEntries')) || [];
+            
+            // Add new entry
+            entries.push(entry);
+            
+            // Save back to local storage
+            localStorage.setItem('journalEntries', JSON.stringify(entries));
+        }
+        
+        // Display entries from local storage
+        function displayEntries() {
+            const entriesList = document.getElementById('entries-list');
+            entriesList.innerHTML = ''; // Clear current list
+            
+            // Get entries from local storage
+            const entries = JSON.parse(localStorage.getItem('journalEntries')) || [];
+            
+            if (entries.length === 0) {
+                entriesList.innerHTML = '<p>No entries yet. Start journaling to see your entries here.</p>';
+                return;
+            }
+            
+            // Sort entries by date (newest first)
+            entries.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            // Create list items for each entry
+            entries.forEach(entry => {
+                const entryItem = document.createElement('li');
+                entryItem.className = 'entry-item';
+                
+                // Format date
+                const entryDate = new Date(entry.date);
+                const formattedDate = entryDate.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                
+                entryItem.innerHTML = `
+                    <div class="entry-date">${formattedDate}</div>
+                    <div class="entry-mood">Mood: ${entry.mood}</div>
+                    <div class="entry-content">
+                        <strong>Gratitude:</strong>
+                        <p>${entry.gratitude.replace(/\n/g, '<br>')}</p>
+                        <strong>Journal:</strong>
+                        <p>${entry.journalEntry.replace(/\n/g, '<br>')}</p>
+                    </div>
+                `;
+                
+                entriesList.appendChild(entryItem);
+            });
+        }
+        
+        // Load and display inspirational quotes
+        function loadQuote() {
+            const quotes = [
+                { text: "Mental health is not a destination, but a process. It's about how you drive, not where you're going.", author: "Noam Shpancer" },
+                { text: "You don't have to be positive all the time. It's perfectly okay to feel sad, angry, annoyed, frustrated, scared, or anxious.", author: "Lori Deschene" },
+                { text: "Self-care is how you take your power back.", author: "Lalah Delia" },
+                { text: "There is hope, even when your brain tells you there isn't.", author: "John Green" },
+                { text: "Recovery is not one and done. It is a lifelong journey that takes place one day, one step at a time.", author: "Unknown" },
+                { text: "You are not your illness. You have an individual story to tell. You have a name, a history, a personality. Staying yourself is part of the battle.", author: "Julian Seifter" },
+                { text: "Happiness can be found even in the darkest of times, if one only remembers to turn on the light.", author: "Albus Dumbledore" },
+                { text: "What mental health needs is more sunlight, more candor, and more unashamed conversation.", author: "Glenn Close" },
+                { text: "Just because no one else can heal or do your inner work for you doesn't mean you can, should, or need to do it alone.", author: "Lisa Olivera" },
+                { text: "The greatest glory in living lies not in never falling, but in rising every time we fall.", author: "Nelson Mandela" }
+            ];
+            
+            // Get random quote
+            const randomIndex = Math.floor(Math.random() * quotes.length);
+            const quote = quotes[randomIndex];
+            
+            // Display quote
+            document.getElementById('quote-text').textContent = `"${quote.text}"`;
+            document.getElementById('quote-author').textContent = `— ${quote.author}`;
+
+        }
+    </script>
+</body>
+</html>
