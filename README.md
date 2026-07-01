@@ -1,7 +1,7 @@
 Mental Health Journal
 
 
-A web based journlaing application designed to support mental well-being through daily reflection, mood tracking and gratitude practice.
+A web based journal application designed to support mental well-being through daily reflection, mood tracking and gratitude practice.
 
 
 Features
